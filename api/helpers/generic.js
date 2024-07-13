@@ -66,8 +66,6 @@ const paginatedList = async (req, model, query, sortBy = {}) => {
 
 module.exports = {
   paginatedList,
-  authenticateClientToken,
-  getReviewData,
   hashPassword,
   comparePassword,
   authenticateToken,
