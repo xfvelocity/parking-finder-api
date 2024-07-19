@@ -12,17 +12,31 @@ const map = async (req, res) => {
   lat = parseFloat(lat);
   lng = parseFloat(lng);
 
-  try {
-    const items = await Map.find({
-      location: {
-        $near: {
-          $geometry: {
-            type: "Point",
-            coordinates: [lng, lat],
-          },
-          $maxDistance: 5000,
+  const filters = {
+    location: {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [lng, lat],
+        },
+        $maxDistance: 5000,
+      },
+    },
+  };
+
+  if (req.query.hours) {
+    filters.prices = {
+      $elemMatch: {
+        hours: {
+          $all: req.query.hours.map((h) => parseInt(h)),
         },
       },
+    };
+  }
+
+  try {
+    const items = await Map.find({
+      ...filters,
     });
 
     return res.status(200).send(items);

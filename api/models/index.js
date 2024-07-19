@@ -28,10 +28,10 @@ const mapSchema = new Schema({
       required: true,
     },
   },
-  pints: [
+  prices: [
     {
       id: Number,
-      name: String,
+      hours: [Number],
       price: Number,
     },
   ],
