@@ -24,7 +24,7 @@ const map = async (req, res) => {
               latitude: lat,
               longitude: lng,
             },
-            radius: 5000,
+            radius: req.query.radius || 5000,
           },
         },
       },
