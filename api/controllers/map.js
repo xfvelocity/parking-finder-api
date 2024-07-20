@@ -47,7 +47,25 @@ const map = async (req, res) => {
 
 const createMap = async (req, res) => {
   try {
-    const item = await Map.create(req.body);
+    let { lat, lng } = req.body;
+
+    if (!lat || !lng) {
+      return res
+        .status(500)
+        .send({ message: "Latitude & Longitude is required" });
+    }
+
+    lat = parseFloat(lat);
+    lng = parseFloat(lng);
+
+    const item = await Map.create({
+      name: req.body.name,
+      location: {
+        type: "Point",
+        coordinates: [lng, lat],
+      },
+      prices: req.body.prices || [],
+    });
 
     return res.status(200).send(item);
   } catch (e) {
