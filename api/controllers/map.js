@@ -39,6 +39,10 @@ const map = async (req, res) => {
       }
     );
 
+    if (JSON.stringify(googleResponse.data) === "{}") {
+      return res.status(200).send([]);
+    }
+
     const items = await Promise.all(
       googleResponse.data.places.map(async (r) => {
         if (req.query.hours) {
@@ -74,6 +78,7 @@ const map = async (req, res) => {
 
     return res.status(200).send(items.filter((x) => x));
   } catch (e) {
+    console.log(e);
     return res.status(500).send({ message: e });
   }
 };
