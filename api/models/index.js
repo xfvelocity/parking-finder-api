@@ -15,19 +15,7 @@ const UserModel = mongoose.model("User", userSchema);
 
 // ** Map **
 const mapSchema = new Schema({
-  name: String,
-  location: {
-    type: {
-      type: String,
-      enum: ["Point"],
-      required: true,
-    },
-    coordinates: {
-      type: [Number],
-      index: "2dsphere",
-      required: true,
-    },
-  },
+  googlePlaceId: String,
   prices: [
     {
       id: Number,
