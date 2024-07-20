@@ -18,14 +18,13 @@ const map = async (req, res) => {
       "https://places.googleapis.com/v1/places:searchNearby",
       {
         includedTypes: ["parking"],
-        maxResultCount: 20,
         locationRestriction: {
           circle: {
             center: {
               latitude: lat,
               longitude: lng,
             },
-            radius: 500,
+            radius: 5000,
           },
         },
       },
