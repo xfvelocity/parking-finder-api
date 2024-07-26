@@ -19,7 +19,7 @@ const mapSchema = new Schema({
   prices: [
     {
       id: Number,
-      hours: [Number],
+      hours: Number,
       price: Number,
     },
   ],

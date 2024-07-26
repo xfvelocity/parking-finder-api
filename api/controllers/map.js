@@ -50,7 +50,7 @@ const map = async (req, res) => {
             prices: {
               $elemMatch: {
                 hours: {
-                  $all: req.query.hours.map((h) => parseInt(h)),
+                  $eq: req.query.hours,
                 },
               },
             },
