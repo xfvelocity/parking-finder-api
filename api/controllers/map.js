@@ -32,7 +32,7 @@ const map = async (req, res) => {
         headers: {
           "Content-Type": "application/json",
           "X-Goog-FieldMask":
-            "places.displayName,places.location,places.rating,places.id",
+            "places.displayName,places.location,places.rating,places.id,places.formattedAddress",
           "X-Goog-Api-Key": process.env.GOOGLE_API_KEY,
         },
       }
