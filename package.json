@@ -1,5 +1,5 @@
 {
-  "name": "api",
+  "name": "parking-finder-api",
   "version": "0.0.1",
   "main": "api/index.js",
   "license": "ISC",
