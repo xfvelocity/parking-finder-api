@@ -1,6 +1,7 @@
 const { default: axios } = require("axios");
 const { Map } = require("../models/index");
 
+// ** GET **
 const map = async (req, res) => {
   let { lat, lng } = req.query;
 
@@ -82,15 +83,18 @@ const map = async (req, res) => {
   }
 };
 
+// ** POST **
 const createMap = async (req, res) => {
+  console.log(req.params);
   try {
     const item = await Map.create({
-      googlePlaceId: req.body.googlePlaceId,
+      googlePlaceId: req.params.placeId,
       prices: req.body.prices || [],
     });
 
     return res.status(200).send(item);
   } catch (e) {
+    console.log(e);
     return res.status(500).send({ message: e });
   }
 };

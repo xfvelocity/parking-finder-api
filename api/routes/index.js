@@ -13,6 +13,6 @@ const { map, createMap } = require("../controllers/map");
 
 router.get("/map", map);
 
-router.post("/map", createMap);
+router.post("/add-prices/:placeId", createMap);
 
 module.exports = router;
