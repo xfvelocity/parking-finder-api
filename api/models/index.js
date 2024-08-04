@@ -15,14 +15,33 @@ const UserModel = mongoose.model("User", userSchema);
 
 // ** Map **
 const mapSchema = new Schema({
-  googlePlaceId: String,
+  type: String,
+  location: {
+    lat: Number,
+    lng: Number,
+  },
   prices: [
     {
-      id: Number,
-      hours: Number,
+      appPrice: Boolean,
       price: Number,
+      hours: Schema.Types.Mixed,
+      nightRate: Boolean,
+      earlyRate: Boolean,
     },
   ],
+  info: {
+    spaces: Number,
+    disabledSpaces: Number,
+    openingHours: {
+      monday: [String],
+      tuesday: [String],
+      wednesday: [String],
+      thursday: [String],
+      friday: [String],
+      saturday: [String],
+      sunday: [String],
+    },
+  },
 });
 
 const MapModel = mongoose.model("Map", mapSchema);
