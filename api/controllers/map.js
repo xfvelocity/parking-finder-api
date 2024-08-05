@@ -1,5 +1,6 @@
 const { default: axios } = require("axios");
 const { Map } = require("../models/index");
+const { getNCPCarParks } = require("../ncpScraper.js");
 
 // ** GET **
 const map = async (req, res) => {
@@ -14,65 +15,107 @@ const map = async (req, res) => {
   lat = parseFloat(lat);
   lng = parseFloat(lng);
 
-  try {
-    const googleResponse = await axios.post(
-      "https://places.googleapis.com/v1/places:searchNearby",
-      {
-        includedTypes: ["parking"],
-        locationRestriction: {
-          circle: {
-            center: {
-              latitude: lat,
-              longitude: lng,
-            },
-            radius: req.query.radius || 5000,
-          },
+  const filters = {
+    location: {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [lng, lat],
+        },
+        $maxDistance: req.query.radius || 500,
+      },
+    },
+  };
+
+  if (req.query.hours) {
+    filters.prices = {
+      $elemMatch: {
+        hours: {
+          $eq: req.query.hours,
         },
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-FieldMask":
-            "places.displayName,places.location,places.rating,places.id,places.formattedAddress",
-          "X-Goog-Api-Key": process.env.GOOGLE_API_KEY,
-        },
-      }
-    );
+    };
+  }
 
-    if (JSON.stringify(googleResponse.data) === "{}") {
-      return res.status(200).send([]);
+  try {
+    let items = await Map.find(filters);
+    let itemsWithoutGoogle = items
+      .map((item) => item._doc)
+      .filter((item) => !item.placeId);
+
+    items = [...items.filter((item) => item.placeId)];
+
+    if (itemsWithoutGoogle.length) {
+      const googleResponse = await axios.post(
+        "https://places.googleapis.com/v1/places:searchNearby",
+        {
+          includedTypes: ["parking"],
+          locationRestriction: {
+            circle: {
+              center: {
+                latitude: lat,
+                longitude: lng,
+              },
+              radius: req.query.radius || 500,
+            },
+          },
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-FieldMask":
+              "places.displayName,places.location,places.rating,places.id,places.formattedAddress",
+            "X-Goog-Api-Key": process.env.GOOGLE_API_KEY,
+          },
+        }
+      );
+
+      itemsWithoutGoogle = googleResponse.data.places.map((r) => {
+        const matchingItem = itemsWithoutGoogle.find(
+          (i) =>
+            i.location.coordinates[1] ===
+              Math.ceil(r.location.latitude * 10000) / 10000 &&
+            i.location.coordinates[0] ===
+              Math.floor(r.location.longitude * 10000) / 10000
+        );
+
+        if (matchingItem) {
+          return {
+            name: r.displayName.text,
+            address: r.formattedAddress,
+            rating: r.rating,
+            placeId: r.id,
+            ...matchingItem,
+          };
+        } else {
+          return {
+            type: "google",
+            name: r.displayName.text,
+            address: r.formattedAddress,
+            rating: r.rating,
+            placeId: r.id,
+            location: {
+              type: "Point",
+              coordinates: [r.location.longitude, r.location.latitude],
+            },
+            info: {},
+            prices: [],
+          };
+        }
+      });
+
+      items.push(...itemsWithoutGoogle);
     }
 
-    const items = await Promise.all(
-      googleResponse.data.places.map(async (r) => {
-        if (req.query.hours) {
-          const item = await Map.findOne({
-            googlePlaceId: r.id,
-            prices: {
-              $elemMatch: {
-                hours: {
-                  $eq: req.query.hours,
-                },
-              },
-            },
-          });
-
-          if (item) {
-            return { ...r, prices: item.prices };
-          } else {
-            return null;
-          }
+    await Promise.all(
+      items.map(async (item) => {
+        if (item._id) {
+          await Map.findByIdAndUpdate(item._id, item);
         } else {
-          const item = await Map.findOne({
-            googlePlaceId: r.id,
-          });
-
-          if (item) {
-            return { ...r, prices: item.prices };
-          } else {
-            return r;
-          }
+          await Map.create(item);
         }
+
+        return item;
       })
     );
 
@@ -85,18 +128,9 @@ const map = async (req, res) => {
 
 // ** POST **
 const createMap = async (req, res) => {
-  console.log(req.params);
-  try {
-    const item = await Map.create({
-      googlePlaceId: req.params.placeId,
-      prices: req.body.prices || [],
-    });
+  await getNCPCarParks();
 
-    return res.status(200).send(item);
-  } catch (e) {
-    console.log(e);
-    return res.status(500).send({ message: e });
-  }
+  return res.status(200);
 };
 
 module.exports = {

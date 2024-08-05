@@ -16,9 +16,21 @@ const UserModel = mongoose.model("User", userSchema);
 // ** Map **
 const mapSchema = new Schema({
   type: String,
+  name: String,
+  address: String,
+  rating: Number,
+  placeId: String,
   location: {
-    lat: Number,
-    lng: Number,
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      index: "2dsphere",
+      required: true,
+    },
   },
   prices: [
     {
@@ -43,6 +55,8 @@ const mapSchema = new Schema({
     },
   },
 });
+
+mapSchema.index({ location: "2dsphere" });
 
 const MapModel = mongoose.model("Map", mapSchema);
 

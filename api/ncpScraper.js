@@ -5,6 +5,7 @@ const { Map } = require("./models/index");
 let logs;
 let page;
 let browser;
+const failedConversions = [];
 
 const getNcpTime = (item) => {
   let newItem = {
@@ -32,6 +33,10 @@ const getNcpTime = (item) => {
       newItem.hours = earlyRate;
       newItem.earlyRate = true;
     }
+  }
+
+  if (typeof newItem.hours === "string") {
+    failedConversions.push(newItem.hours);
   }
 
   return newItem;
@@ -106,8 +111,8 @@ const getNcpParkingInfo = async (url) => {
   const formattedInfo = {
     type: "ncp",
     location: {
-      lat: logs.location.coords.lat,
-      lng: logs.location.coords.lng,
+      type: "Point",
+      coordinates: [logs.location.coords.lng, logs.location.coords.lat],
     },
     prices: logs.carparks[0].tariffs.map((x) => getNcpTime(x)),
     info: {
@@ -218,6 +223,7 @@ const getNcpCarParks = async (url) => {
   await browser.close();
 
   console.log(`Scraping complete. ${info.length} items stored`);
+  console.log(failedConversions);
 };
 
 const getNCPCarParks = async () => {
