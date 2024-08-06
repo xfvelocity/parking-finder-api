@@ -79,9 +79,7 @@ const map = async (req, res) => {
               Math.floor(r.location.longitude * 10000) / 10000
         );
 
-        const itemAlreadySaved = items.find(
-          (item) => item.placeId === r.placeId
-        );
+        const itemAlreadySaved = items.find((item) => item.placeId === r.id);
 
         if (matchingItem) {
           return {
