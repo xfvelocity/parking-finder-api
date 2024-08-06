@@ -79,6 +79,10 @@ const map = async (req, res) => {
               Math.floor(r.location.longitude * 10000) / 10000
         );
 
+        const itemAlreadySaved = items.find(
+          (item) => item.placeId === r.placeId
+        );
+
         if (matchingItem) {
           return {
             name: r.displayName.text,
@@ -87,7 +91,7 @@ const map = async (req, res) => {
             placeId: r.id,
             ...matchingItem,
           };
-        } else {
+        } else if (!itemAlreadySaved) {
           return {
             type: "google",
             name: r.displayName.text,
@@ -102,9 +106,11 @@ const map = async (req, res) => {
             prices: [],
           };
         }
+
+        return null;
       });
 
-      items.push(...itemsWithoutGoogle);
+      items.push(...itemsWithoutGoogle.filter((x) => x));
     }
 
     await Promise.all(
@@ -119,7 +125,7 @@ const map = async (req, res) => {
       })
     );
 
-    return res.status(200).send(items.filter((x) => x));
+    return res.status(200).send(items);
   } catch (e) {
     console.log(e);
     return res.status(500).send({ message: e });
@@ -127,13 +133,18 @@ const map = async (req, res) => {
 };
 
 // ** POST **
-const createMap = async (req, res) => {
-  await getNCPCarParks();
+const scrapeNcp = async (req, res) => {
+  try {
+    await getNCPCarParks();
 
-  return res.status(200);
+    return res.status(200);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send({ message: e });
+  }
 };
 
 module.exports = {
   map,
-  createMap,
+  scrapeNcp,
 };

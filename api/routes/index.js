@@ -9,10 +9,10 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 
 // ** Maps **
-const { map, createMap } = require("../controllers/map");
+const { map, scrapeNcp } = require("../controllers/map");
 
 router.get("/map", map);
 
-router.post("/add-prices/:placeId", createMap);
+router.post("/map/ncp-scrape", scrapeNcp);
 
 module.exports = router;
