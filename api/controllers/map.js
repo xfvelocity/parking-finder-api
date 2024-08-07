@@ -1,6 +1,7 @@
 const { default: axios } = require("axios");
 const { Map } = require("../models/index");
 const { getNCPCarParks } = require("../ncpScraper.js");
+const { checkDistance } = require("../helpers/generic.js");
 
 // ** GET **
 const map = async (req, res) => {
@@ -45,7 +46,7 @@ const map = async (req, res) => {
 
     items = [...items.filter((item) => item.placeId)];
 
-    if (itemsWithoutGoogle.length) {
+    if (itemsWithoutGoogle.length || !items.length) {
       const googleResponse = await axios.post(
         "https://places.googleapis.com/v1/places:searchNearby",
         {
@@ -71,13 +72,15 @@ const map = async (req, res) => {
       );
 
       itemsWithoutGoogle = googleResponse.data.places.map((r) => {
-        const matchingItem = itemsWithoutGoogle.find(
-          (i) =>
-            i.location.coordinates[1] ===
-              Math.ceil(r.location.latitude * 10000) / 10000 &&
-            i.location.coordinates[0] ===
-              Math.floor(r.location.longitude * 10000) / 10000
-        );
+        const matchingItem = itemsWithoutGoogle.find((i) => {
+          return checkDistance(
+            i.location.coordinates[1],
+            i.location.coordinates[0],
+            r.location.latitude,
+            r.location.longitude,
+            25
+          );
+        });
 
         const itemAlreadySaved = items.find((item) => item.placeId === r.id);
 
