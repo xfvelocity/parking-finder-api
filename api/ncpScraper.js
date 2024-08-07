@@ -5,12 +5,12 @@ const { Map } = require("./models/index");
 let logs;
 let page;
 let browser;
-const failedConversions = [];
 
 const getNcpTime = (item) => {
   let newItem = {
     appPrice: item.tariffTitle.includes("APP"),
     price: item.tariffCharge,
+    originalHours: item.tariffTitle,
   };
 
   const hourMatch = item.tariffTitle.toLowerCase().match(/to\s+(\d+)\s+hour/);
@@ -33,10 +33,6 @@ const getNcpTime = (item) => {
       newItem.hours = earlyRate;
       newItem.earlyRate = true;
     }
-  }
-
-  if (typeof newItem.hours === "string") {
-    failedConversions.push(newItem.hours);
   }
 
   return newItem;
@@ -223,7 +219,6 @@ const getNcpCarParks = async (url) => {
   await browser.close();
 
   console.log(`Scraping complete. ${info.length} items stored`);
-  console.log(failedConversions);
 };
 
 const getNCPCarParks = async () => {

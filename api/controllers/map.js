@@ -138,7 +138,7 @@ const scrapeNcp = async (req, res) => {
   try {
     await getNCPCarParks();
 
-    return res.status(200);
+    return res.status(200).send({});
   } catch (e) {
     console.error(e);
     return res.status(500).send({ message: e });
