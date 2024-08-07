@@ -13,26 +13,15 @@ const getNcpTime = (item) => {
     originalHours: item.tariffTitle,
   };
 
-  const hourMatch = item.tariffTitle.toLowerCase().match(/to\s+(\d+)\s+hour/);
+  const multipleHoursMatch = item.tariffTitle
+    .toLowerCase()
+    .match(/to\s+(\d+)\s+hour/);
+  const hourMatch = (item.tariffTitle.toLowerCase().match(/\d+/) || [])[0];
 
-  console.log(item.tariffTitle);
-
-  if (hourMatch) {
-    newItem.hours = parseInt(hourMatch[1], 10);
-  } else {
-    const nightRateText = item.tariffTitle.split("NIGHT RATE ")[1];
-
-    if (nightRateText) {
-      newItem.hours = nightRateText;
-      newItem.nightRate = true;
-    }
-
-    const earlyRate = item.tariffTitle.split("EARLY BIRD ENTRY ")[1];
-
-    if (earlyRate) {
-      newItem.hours = earlyRate;
-      newItem.earlyRate = true;
-    }
+  if (multipleHoursMatch) {
+    newItem.hours = parseInt(multipleHoursMatch[1]);
+  } else if (hourMatch) {
+    newItem.hours = parseInt(hourMatch);
   }
 
   return newItem;
@@ -92,7 +81,7 @@ const getNcpOpeningHours = (openHours) => {
     });
   } else {
     if (openHours.includes("24 Hr")) {
-      Object.keys(hours).forEach((k) => (hours[k] = [0, 24]));
+      Object.keys(hours).forEach((k) => (hours[k] = ["00:00", "24:00"]));
     }
   }
 

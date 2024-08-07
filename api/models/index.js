@@ -38,8 +38,6 @@ const mapSchema = new Schema({
       price: Number,
       hours: Schema.Types.Mixed,
       originalHours: Schema.Types.Mixed,
-      nightRate: Boolean,
-      earlyRate: Boolean,
     },
   ],
   info: {
