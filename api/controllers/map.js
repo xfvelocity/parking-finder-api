@@ -124,6 +124,12 @@ const map = async (req, res) => {
       })
     );
 
+    if (req.query.hours) {
+      items = items.filter((item) =>
+        item.prices.some((price) => price.hours === req.query.hours)
+      );
+    }
+
     return res.status(200).send(items);
   } catch (e) {
     console.log(e);
