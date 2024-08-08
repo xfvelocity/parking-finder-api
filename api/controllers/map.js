@@ -31,9 +31,7 @@ const map = async (req, res) => {
   if (req.query.hours) {
     filters.prices = {
       $elemMatch: {
-        hours: {
-          $eq: req.query.hours,
-        },
+        hours: parseInt(req.query.hours),
       },
     };
   }
@@ -46,7 +44,7 @@ const map = async (req, res) => {
 
     items = [...items.filter((item) => item.placeId)];
 
-    if (itemsWithoutGoogle.length || !items.length) {
+    if (itemsWithoutGoogle.length || (!req.query.hours && !items.length)) {
       const googleResponse = await axios.post(
         "https://places.googleapis.com/v1/places:searchNearby",
         {
