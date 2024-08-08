@@ -126,7 +126,7 @@ const map = async (req, res) => {
 
     if (req.query.hours) {
       items = items.filter((item) =>
-        item.prices.some((price) => price.hours === req.query.hours)
+        item.prices.some((price) => price.hours === parseInt(req.query.hours))
       );
     }
 
