@@ -31,7 +31,7 @@ const map = async (req, res) => {
   if (req.query.hours) {
     filters.prices = {
       $elemMatch: {
-        hours: parseInt(req.query.hours),
+        hours: { $gte: parseInt(req.query.hours) },
       },
     };
   }
@@ -124,10 +124,8 @@ const map = async (req, res) => {
       })
     );
 
-    if (req.query.hours) {
-      items = items.filter((item) =>
-        item.prices.some((price) => price.hours === parseInt(req.query.hours))
-      );
+    if (req.query.hours && itemsWithoutGoogle.length) {
+      items = await Map.find(filters);
     }
 
     return res.status(200).send(items);
