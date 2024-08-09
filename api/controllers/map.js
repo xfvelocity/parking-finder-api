@@ -138,7 +138,7 @@ const map = async (req, res) => {
 // ** POST **
 const scrapeNcp = async (req, res) => {
   try {
-    await getNCPCarParks();
+    await getNCPCarParks(req, res);
 
     return res.status(200).send({});
   } catch (e) {

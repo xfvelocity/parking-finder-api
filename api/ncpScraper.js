@@ -7,24 +7,30 @@ let page;
 let browser;
 
 const getNcpTime = (item) => {
+  let match;
   let newItem = {
     appPrice: item.tariffTitle.includes("APP"),
     price: item.tariffCharge,
     originalHours: item.tariffTitle,
   };
 
-  const multipleHoursMatch = item.tariffTitle
-    .toLowerCase()
-    .match(/to\s+(\d+)\s+hour/);
-  const hourMatch = (item.tariffTitle.toLowerCase().match(/\d+/) || [])[0];
-
-  if (multipleHoursMatch) {
-    newItem.hours = parseInt(multipleHoursMatch[1]);
-  } else if (hourMatch) {
-    newItem.hours = parseInt(hourMatch);
+  if (
+    (match = item.tariffTitle
+      .toLowerCase()
+      .match(/^(?:app\s+)?(\d+)\s*hours?$/i))
+  ) {
+    return { ...newItem, hours: parseInt(match[1], 10) };
   }
 
-  return newItem;
+  if (
+    (match = item.tariffTitle
+      .toLowerCase()
+      .match(/^(?:app\s+)?(\d+)\s*to\s*(\d+)\s*hours$/))
+  ) {
+    return { ...newItem, hours: parseInt(match[2], 10) };
+  }
+
+  return null;
 };
 
 const getDaysBetween = (startKey, endKey, enumObj) => {
@@ -99,7 +105,7 @@ const getNcpParkingInfo = async (url) => {
       type: "Point",
       coordinates: [logs.location.coords.lng, logs.location.coords.lat],
     },
-    prices: logs.carparks[0].tariffs.map((x) => getNcpTime(x)),
+    prices: logs.carparks[0].tariffs.map((x) => getNcpTime(x)).filter((x) => x),
     info: {
       spaces: logs.carparks[0].numberOfSpaces,
       disabledSpaces: parseInt(logs.carparks[0].numberOfDisabledBays),
@@ -193,10 +199,16 @@ const carParkToInfo = async (array) => {
   return results;
 };
 
-const getNcpCarParks = async (url) => {
-  console.log("Fetching cities..");
-  const cities = await getCities(url);
-  console.log(`${cities.length} cities found`);
+const getNcpCarParks = async (url, city) => {
+  let cities;
+
+  if (url) {
+    console.log("Fetching cities..");
+    cities = await getCities(url || city);
+    console.log(`${cities.length} cities found`);
+  } else {
+    cities = [city];
+  }
 
   console.log("Fetching carparks..");
   const carParks = await citiesToCarParks(cities);
@@ -210,7 +222,7 @@ const getNcpCarParks = async (url) => {
   console.log(`Scraping complete. ${info.length} items stored`);
 };
 
-const getNCPCarParks = async () => {
+const getNCPCarParks = async (req, res) => {
   browser = await puppeteer.launch({ headless: true });
   page = await browser.newPage();
 
@@ -221,7 +233,11 @@ const getNCPCarParks = async () => {
     }
   });
 
-  await getNcpCarParks("https://www.ncp.co.uk/parking-solutions/cities/");
+  if (req.query.city) {
+    await getNcpCarParks("", req.query.city);
+  } else {
+    await getNcpCarParks("https://www.ncp.co.uk/parking-solutions/cities/");
+  }
 };
 
 module.exports = {
