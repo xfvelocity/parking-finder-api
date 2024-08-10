@@ -64,6 +64,12 @@ const paginatedList = async (req, model, query, sortBy = {}) => {
   };
 };
 
+const roundDecimal = (number, decimals) => {
+  const factor = Math.pow(10, decimals);
+
+  return Math.floor(number * factor) / factor;
+};
+
 // ** Distance **
 const checkDistance = (lat1, lon1, lat2, lon2, range) => {
   const toRad = (angle) => (angle * Math.PI) / 180;
@@ -89,4 +95,5 @@ module.exports = {
   hashPassword,
   comparePassword,
   authenticateToken,
+  roundDecimal,
 };

@@ -19,7 +19,7 @@ const mapSchema = new Schema({
   name: String,
   address: String,
   rating: Number,
-  placeId: String,
+  locationUuid: String,
   location: {
     type: {
       type: String,
@@ -55,11 +55,28 @@ const mapSchema = new Schema({
   },
 });
 
-mapSchema.index({ location: "2dsphere" });
-
 const MapModel = mongoose.model("Map", mapSchema);
+
+const locationSchema = new Schema({
+  uuid: String,
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      index: "2dsphere",
+      required: true,
+    },
+  },
+});
+
+const LocationModel = mongoose.model("Location", locationSchema);
 
 module.exports = {
   User: UserModel,
   Map: MapModel,
+  Location: LocationModel,
 };

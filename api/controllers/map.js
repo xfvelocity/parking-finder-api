@@ -1,11 +1,93 @@
 const { default: axios } = require("axios");
-const { Map } = require("../models/index");
-const { getNCPCarParks } = require("../ncpScraper.js");
-const { checkDistance } = require("../helpers/generic.js");
+const { Map, Location } = require("../models/index");
+const { getNCPCarParks, scrapeGooglePlaces } = require("../ncpScraper.js");
+const { checkDistance, roundDecimal } = require("../helpers/generic.js");
+const { v4: uuidv4 } = require("uuid");
 
 // ** GET **
+const getGoogleLocations = async (lat, lng, radius) => {
+  const uuid = uuidv4();
+  const res = await axios.post(
+    "https://places.googleapis.com/v1/places:searchNearby",
+    {
+      includedTypes: ["parking"],
+      locationRestriction: {
+        circle: {
+          center: {
+            latitude: lat,
+            longitude: lng,
+          },
+          radius: radius || 500,
+        },
+      },
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-FieldMask":
+          "places.displayName,places.location,places.rating,places.id,places.formattedAddress",
+        "X-Goog-Api-Key": process.env.GOOGLE_API_KEY,
+      },
+    }
+  );
+
+  await Location.create({
+    uuid,
+    location: {
+      type: "Point",
+      coordinates: [lng, lat],
+    },
+  });
+
+  return { results: res?.data?.places || [], uuid };
+};
+
+const handleNewGoogleLocations = (data, items) => {
+  return data.results
+    .map((r) => {
+      const matchingItem = items.find((i) => {
+        return checkDistance(
+          i.location.coordinates[1],
+          i.location.coordinates[0],
+          r.location.latitude,
+          r.location.longitude,
+          35
+        );
+      });
+
+      const itemAlreadySaved = items.find((item) => item.placeId === r.id);
+
+      if (matchingItem) {
+        return {
+          name: r.displayName.text,
+          address: r.formattedAddress,
+          rating: r.rating,
+          locationUuid: data.uuid,
+          ...matchingItem,
+        };
+      } else if (!itemAlreadySaved) {
+        return {
+          type: "google",
+          name: r.displayName.text,
+          address: r.formattedAddress,
+          rating: r.rating,
+          locationUuid: data.uuid,
+          location: {
+            type: "Point",
+            coordinates: [r.location.longitude, r.location.latitude],
+          },
+          info: {},
+          prices: [],
+        };
+      }
+
+      return null;
+    })
+    .filter((x) => x);
+};
+
 const map = async (req, res) => {
-  let { lat, lng } = req.query;
+  let { lat, lng, radius } = req.query;
 
   if (!lat || !lng) {
     return res
@@ -13,8 +95,9 @@ const map = async (req, res) => {
       .send({ message: "Latitude & Longitude is required" });
   }
 
-  lat = parseFloat(lat);
-  lng = parseFloat(lng);
+  lat = roundDecimal(parseFloat(lat), 4);
+  lng = roundDecimal(parseFloat(lng), 4);
+  radius = parseInt(radius);
 
   const filters = {
     location: {
@@ -23,7 +106,7 @@ const map = async (req, res) => {
           type: "Point",
           coordinates: [lng, lat],
         },
-        $maxDistance: req.query.radius || 500,
+        $maxDistance: radius || 500,
       },
     },
   };
@@ -37,95 +120,24 @@ const map = async (req, res) => {
   }
 
   try {
-    let items = await Map.find(filters);
-    let itemsWithoutGoogle = items
-      .map((item) => item._doc)
-      .filter((item) => !item.placeId);
+    let location = await Location.findOne(filters);
+    let items = (await Map.find(filters)).map((x) => x._doc);
 
-    items = [...items.filter((item) => item.placeId)];
+    if (!location) {
+      const results = await getGoogleLocations(lat, lng, radius);
+      const newItems = handleNewGoogleLocations(results, items);
 
-    if (itemsWithoutGoogle.length || (!req.query.hours && !items.length)) {
-      const googleResponse = await axios.post(
-        "https://places.googleapis.com/v1/places:searchNearby",
-        {
-          includedTypes: ["parking"],
-          locationRestriction: {
-            circle: {
-              center: {
-                latitude: lat,
-                longitude: lng,
-              },
-              radius: req.query.radius || 500,
-            },
-          },
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "X-Goog-FieldMask":
-              "places.displayName,places.location,places.rating,places.id,places.formattedAddress",
-            "X-Goog-Api-Key": process.env.GOOGLE_API_KEY,
-          },
-        }
+      items = await Promise.all(
+        newItems.map(async (item) => {
+          if (item._id) {
+            await Map.findByIdAndUpdate(item._id, item);
+          } else {
+            await Map.create(item);
+          }
+
+          return item;
+        })
       );
-
-      itemsWithoutGoogle = googleResponse.data.places.map((r) => {
-        const matchingItem = itemsWithoutGoogle.find((i) => {
-          return checkDistance(
-            i.location.coordinates[1],
-            i.location.coordinates[0],
-            r.location.latitude,
-            r.location.longitude,
-            25
-          );
-        });
-
-        const itemAlreadySaved = items.find((item) => item.placeId === r.id);
-
-        if (matchingItem) {
-          return {
-            name: r.displayName.text,
-            address: r.formattedAddress,
-            rating: r.rating,
-            placeId: r.id,
-            ...matchingItem,
-          };
-        } else if (!itemAlreadySaved) {
-          return {
-            type: "google",
-            name: r.displayName.text,
-            address: r.formattedAddress,
-            rating: r.rating,
-            placeId: r.id,
-            location: {
-              type: "Point",
-              coordinates: [r.location.longitude, r.location.latitude],
-            },
-            info: {},
-            prices: [],
-          };
-        }
-
-        return null;
-      });
-
-      items.push(...itemsWithoutGoogle.filter((x) => x));
-    }
-
-    await Promise.all(
-      items.map(async (item) => {
-        if (item._id) {
-          await Map.findByIdAndUpdate(item._id, item);
-        } else {
-          await Map.create(item);
-        }
-
-        return item;
-      })
-    );
-
-    if (req.query.hours && itemsWithoutGoogle.length) {
-      items = await Map.find(filters);
     }
 
     return res.status(200).send(items);
@@ -139,6 +151,7 @@ const map = async (req, res) => {
 const scrapeNcp = async (req, res) => {
   try {
     await getNCPCarParks(req, res);
+    // await scrapeGooglePlaces();
 
     return res.status(200).send({});
   } catch (e) {

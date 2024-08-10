@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 
 const { Map } = require("./models/index");
+const { default: axios } = require("axios");
 
 let logs;
 let page;
@@ -239,6 +240,52 @@ const getNCPCarParks = async (req, res) => {
     await getNcpCarParks("https://www.ncp.co.uk/parking-solutions/cities/");
   }
 };
+
+// const scrapeGooglePlaces = async () => {
+//   let token;
+
+//   do {
+//     token = await googleSearch(52.527446, 1.023696, token);
+
+//     await new Promise((r) => setTimeout(r, 2000));
+//   } while (token);
+// };
+
+// const googleSearch = async (lat, lng, pageToken) => {
+//   const params = pageToken
+//     ? `key=${process.env.GOOGLE_API_KEY}&pagetoken=${pageToken}`
+//     : `key=${
+//         process.env.GOOGLE_API_KEY
+//       }&radius=50000&type=parking&location=${lat},${lng}${
+//         pageToken ? `&pagetoken=${pageToken}` : ""
+//       }`;
+
+//   const res = await axios.get(
+//     `https://maps.googleapis.com/maps/api/place/nearbysearch/json?${params}`
+//   );
+
+//   await Promise.all(
+//     res?.data?.results.map(async (r) => {
+//       await Map.create({
+//         type: "google",
+//         name: r.name,
+//         address: r.vicinity,
+//         rating: r.rating,
+//         ratingCount: r.user_ratings_total,
+//         location: {
+//           type: "Point",
+//           coordinates: [r.geometry.location.lng, r.geometry.location.lat],
+//         },
+//         info: {},
+//         prices: [],
+//       });
+
+//       return r;
+//     })
+//   );
+
+//   return res?.data?.next_page_token;
+// };
 
 module.exports = {
   getNCPCarParks,
