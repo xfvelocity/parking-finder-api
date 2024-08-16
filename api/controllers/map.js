@@ -111,16 +111,17 @@ const map = async (req, res) => {
     },
   };
 
-  if (req.query.hours) {
-    filters.prices = {
-      $elemMatch: {
-        hours: { $gte: parseInt(req.query.hours) },
-      },
-    };
-  }
-
   try {
     let location = await Location.findOne(filters);
+
+    if (req.query.hours) {
+      filters.prices = {
+        $elemMatch: {
+          hours: { $gte: parseInt(req.query.hours) },
+        },
+      };
+    }
+
     let items = (await Map.find(filters)).map((x) => x._doc);
 
     if (!location) {
