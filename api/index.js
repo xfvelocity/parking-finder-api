@@ -28,6 +28,7 @@ app.use(
 
 const publicUrls = [
   "/api/register",
+  "/api/email-verify",
   "/api/login",
   "/api/map",
   "/api/add-prices",

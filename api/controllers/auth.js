@@ -3,7 +3,7 @@ const {
   comparePassword,
   sendEmailVerification,
 } = require("../helpers/generic");
-const { User } = require("../models/index");
+const { User, EmailValidation } = require("../models/index");
 
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
@@ -40,14 +40,11 @@ const registerUser = async (req, res) => {
       emailVerified: false,
     });
 
-    const accessToken = jwt.sign(user.toJSON(), process.env.JWT_SECRET);
-
     await sendEmailVerification(user);
 
     return res.status(200).send({
       email: user.email,
       uuid: user.uuid,
-      accessToken,
       emailVerified: false,
     });
   } catch (error) {
@@ -85,7 +82,42 @@ const loginUser = async (req, res) => {
   }
 };
 
+// ** Verify code **
+const verifyCode = async (req, res) => {
+  try {
+    const { uuid, code } = req.body;
+
+    const emailVerification = await EmailValidation.findOne({ uuid });
+
+    if (!emailVerification) {
+      return res.status(500).send({ message: "Code has expired" });
+    }
+
+    if (emailVerification.code === parseInt(code)) {
+      const user = await User.findOne({ uuid });
+
+      await User.findByIdAndUpdate(user._id, { emailVerified: true });
+      await EmailValidation.findByIdAndDelete(emailVerification._id);
+
+      const accessToken = jwt.sign(user.toJSON(), process.env.JWT_SECRET);
+
+      res.status(200).send({
+        email: user.email,
+        uuid: user.uuid,
+        emailVerified: true,
+        accessToken,
+      });
+    } else {
+      return res.status(500).send({ message: "Invalid code" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  verifyCode,
 };
