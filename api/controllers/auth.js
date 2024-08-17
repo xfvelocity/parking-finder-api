@@ -1,7 +1,12 @@
-const { hashPassword, comparePassword } = require("../helpers/generic");
+const {
+  hashPassword,
+  comparePassword,
+  sendEmailVerification,
+} = require("../helpers/generic");
+const { User } = require("../models/index");
+
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
-const { User } = require("../models/index");
 
 // ** Register **
 const registerUser = async (req, res) => {
@@ -32,16 +37,21 @@ const registerUser = async (req, res) => {
       uuid: uuidv4(),
       email,
       password: hashedPassword,
+      emailVerified: false,
     });
 
     const accessToken = jwt.sign(user.toJSON(), process.env.JWT_SECRET);
+
+    await sendEmailVerification(user);
 
     return res.status(200).send({
       email: user.email,
       uuid: user.uuid,
       accessToken,
+      emailVerified: false,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server Error", error });
   }
 };

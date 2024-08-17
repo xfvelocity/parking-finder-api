@@ -9,9 +9,26 @@ const userSchema = new Schema({
     unique: true,
   },
   password: String,
+  emailVerified: Boolean,
 });
 
 const UserModel = mongoose.model("User", userSchema);
+
+// ** Email Verification **
+const emailValidationSchema = new Schema({
+  uuid: String,
+  code: Number,
+  createdAt: {
+    type: Date,
+    default: Date.now(),
+    expires: 900,
+  },
+});
+
+const EmailValidationModel = mongoose.model(
+  "EmailValidation",
+  emailValidationSchema
+);
 
 // ** Map **
 const mapSchema = new Schema({
@@ -76,6 +93,7 @@ const locationSchema = new Schema({
 const LocationModel = mongoose.model("Location", locationSchema);
 
 module.exports = {
+  EmailValidation: EmailValidationModel,
   User: UserModel,
   Map: MapModel,
   Location: LocationModel,

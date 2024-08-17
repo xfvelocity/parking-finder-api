@@ -1,5 +1,9 @@
+const { EmailValidation } = require("../models/index.js");
+
+const { MailtrapClient } = require("mailtrap");
 const bcrupt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
 // ** Auth **
 const hashPassword = (password) => {
@@ -38,6 +42,42 @@ const authenticateToken = (req, res, next) => {
   } catch (error) {
     return res.status(403).json({ message: "Access denied. Invalid token." });
   }
+};
+
+const sendEmailVerification = async (user) => {
+  const client = new MailtrapClient({
+    endpoint: process.env.MAILTRAP_ENDPOINT,
+    token: process.env.MAILTRAP_TOKEN,
+  });
+
+  const emailVerificationCode = Math.floor(10000 + Math.random() * 90000);
+
+  await client.send({
+    from: {
+      name: "Parking Finder",
+      email: process.env.MAILTRAP_FROM_EMAIL,
+    },
+    to: [
+      {
+        email: user.email,
+      },
+    ],
+    template_uuid: process.env.MAILTRAP_TEMPLATE,
+    template_variables: {
+      user_email: "",
+      pass_reset_link: `${process.env.CLIENT_URL}email-verification?uuid=${user.uuid}&code=${emailVerificationCode}`,
+    },
+  });
+
+  const expiryDate = new Date();
+
+  expiryDate.setMinutes(expiryDate.getMinutes() + 15);
+
+  await EmailValidation.create({
+    uuid: user.uuid,
+    code: emailVerificationCode,
+    expiresAt: expiryDate,
+  });
 };
 
 // ** Paginated list **
@@ -93,6 +133,7 @@ module.exports = {
   checkDistance,
   paginatedList,
   hashPassword,
+  sendEmailVerification,
   comparePassword,
   authenticateToken,
   roundDecimal,
