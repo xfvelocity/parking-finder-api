@@ -71,14 +71,23 @@ const loginUser = async (req, res) => {
     const passwordMatch = await comparePassword(password, user.password);
 
     if (passwordMatch) {
-      const accessToken = jwt.sign(user.toJSON(), process.env.JWT_SECRET);
-
-      res.status(200).send({
-        name: user.name,
-        email: user.email,
+      let userObject = {
         uuid: user.uuid,
-        accessToken,
-      });
+        emailVerified: user.emailVerified,
+      };
+
+      if (user.emailVerified) {
+        const accessToken = jwt.sign(user.toJSON(), process.env.JWT_SECRET);
+
+        userObject = {
+          ...userObject,
+          name: user.name,
+          email: user.email,
+          accessToken,
+        };
+      }
+
+      res.status(200).send(userObject);
     } else {
       return res.status(500).send({ message: "Incorrect email or password" });
     }
