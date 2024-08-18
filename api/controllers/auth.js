@@ -85,6 +85,8 @@ const loginUser = async (req, res) => {
           email: user.email,
           accessToken,
         };
+      } else {
+        await sendEmailVerification(user);
       }
 
       res.status(200).send(userObject);
