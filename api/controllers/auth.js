@@ -11,7 +11,11 @@ const jwt = require("jsonwebtoken");
 // ** Register **
 const registerUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
+
+    if (!name) {
+      return res.status(500).send({ message: "Name is required" });
+    }
 
     const passwordRegex = new RegExp("^(?=.*[A-Za-z])(?=.*d)[A-Za-zd]{6,}$");
 
@@ -36,6 +40,7 @@ const registerUser = async (req, res) => {
     const user = await User.create({
       uuid: uuidv4(),
       email,
+      name,
       password: hashedPassword,
       emailVerified: false,
     });
@@ -43,7 +48,6 @@ const registerUser = async (req, res) => {
     await sendEmailVerification(user);
 
     return res.status(200).send({
-      email: user.email,
       uuid: user.uuid,
       emailVerified: false,
     });
@@ -70,6 +74,7 @@ const loginUser = async (req, res) => {
       const accessToken = jwt.sign(user.toJSON(), process.env.JWT_SECRET);
 
       res.status(200).send({
+        name: user.name,
         email: user.email,
         uuid: user.uuid,
         accessToken,
@@ -102,6 +107,7 @@ const verifyCode = async (req, res) => {
       const accessToken = jwt.sign(user.toJSON(), process.env.JWT_SECRET);
 
       res.status(200).send({
+        name: user.name,
         email: user.email,
         uuid: user.uuid,
         emailVerified: true,

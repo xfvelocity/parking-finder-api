@@ -64,7 +64,7 @@ const sendEmailVerification = async (user) => {
     ],
     template_uuid: process.env.MAILTRAP_TEMPLATE,
     template_variables: {
-      user_email: "",
+      user_email: user.email,
       pass_reset_link: `${process.env.CLIENT_URL}email-verification?uuid=${user.uuid}&code=${emailVerificationCode}`,
     },
   });
