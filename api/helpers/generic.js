@@ -3,7 +3,6 @@ const { EmailValidation } = require("../models/index.js");
 const { MailtrapClient } = require("mailtrap");
 const bcrupt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
 
 // ** Auth **
 const hashPassword = (password) => {

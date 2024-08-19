@@ -22,7 +22,7 @@ const emailValidationSchema = new Schema({
   createdAt: {
     type: Date,
     default: Date.now(),
-    expires: 900,
+    expires: "15m",
   },
 });
 
