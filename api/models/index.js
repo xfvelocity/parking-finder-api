@@ -53,9 +53,13 @@ const mapSchema = new Schema({
   prices: [
     {
       appPrice: Boolean,
+      earlyRate: Boolean,
+      nightRate: Boolean,
       price: Number,
-      hours: Schema.Types.Mixed,
-      originalHours: Schema.Types.Mixed,
+      hours: Number,
+      days: String,
+      time: String,
+      text: String,
     },
   ],
   info: {
@@ -70,6 +74,8 @@ const mapSchema = new Schema({
       saturday: [String],
       sunday: [String],
     },
+    updatedAt: String,
+    updatedByUuid: String,
   },
 });
 

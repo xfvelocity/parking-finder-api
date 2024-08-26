@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 
 const { Map } = require("./models/index");
+const { calculateHoursBetween } = require("./helpers/generic");
 const { default: axios } = require("axios");
 
 let logs;
@@ -12,17 +13,45 @@ const getNcpTime = (item) => {
   let newItem = {
     appPrice: item.tariffTitle.includes("APP"),
     price: item.tariffCharge,
-    originalHours: item.tariffTitle,
+    text: item.tariffTitle,
+    days: "mon-sun",
+    time: "",
+    nightRate: item.tariffTitle.includes("NIGHT"),
+    earlyRate: item.tariffTitle.includes("EARLY"),
   };
+
+  if (item.tariffTitle.includes("WEEKEND")) {
+    newItem.days = "sat-sun";
+  }
 
   if (
     (match = item.tariffTitle
       .toLowerCase()
-      .match(/^(?:app\s+)?(\d+)\s*hours?$/i))
+      .match(/(\d{4}\s?-\s?\d{4}|by\s?\d{4})/g))
+  ) {
+    const time = match[0].trim();
+    const splitTime = time.split("-");
+
+    return {
+      ...newItem,
+      hours:
+        splitTime.length > 1
+          ? calculateHoursBetween(splitTime[0], splitTime[1])
+          : null,
+      time,
+    };
+  }
+
+  // x hour
+  if (
+    (match = item.tariffTitle
+      .toLowerCase()
+      .match(/^(?:app\s+)?(?:\w+\s+)?(\d+)\s*hours?$/i))
   ) {
     return { ...newItem, hours: parseInt(match[1], 10) };
   }
 
+  // x to x hours
   if (
     (match = item.tariffTitle
       .toLowerCase()
@@ -31,7 +60,7 @@ const getNcpTime = (item) => {
     return { ...newItem, hours: parseInt(match[2], 10) };
   }
 
-  return null;
+  return newItem;
 };
 
 const getDaysBetween = (startKey, endKey, enumObj) => {
@@ -67,8 +96,6 @@ const getNcpOpeningHours = (openHours) => {
     saturday: [],
     sunday: [],
   };
-
-  console.log(openHours);
 
   const differentDays = openHours.split("; ");
 
@@ -111,10 +138,10 @@ const getNcpParkingInfo = async (url) => {
       spaces: logs.carparks[0].numberOfSpaces,
       disabledSpaces: parseInt(logs.carparks[0].numberOfDisabledBays),
       openingHours: getNcpOpeningHours(logs.carparks[0].openHours),
+      updatedAt: new Date().toISOString(),
+      updatedBy: null,
     },
   };
-
-  console.log(formattedInfo);
 
   return formattedInfo;
 };

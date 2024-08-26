@@ -128,6 +128,23 @@ const checkDistance = (lat1, lon1, lat2, lon2, range) => {
   return R * c <= range;
 };
 
+const calculateHoursBetween = (time1, time2) => {
+  // Parse the time strings into hours and minutes
+  const startHour = parseInt(time1.slice(0, 2), 10);
+  const endHour = parseInt(time2.slice(0, 2), 10);
+
+  const startTime = new Date(2024, 0, 1, startHour, 0);
+  const endTime = new Date(2024, 0, 1, endHour, 0);
+
+  if (endTime <= startTime) {
+    endTime.setDate(endTime.getDate() + 1);
+  }
+
+  const differenceInHours = (endTime - startTime) / (1000 * 60 * 60);
+
+  return differenceInHours;
+};
+
 module.exports = {
   checkDistance,
   paginatedList,
@@ -136,4 +153,5 @@ module.exports = {
   comparePassword,
   authenticateToken,
   roundDecimal,
+  calculateHoursBetween,
 };
