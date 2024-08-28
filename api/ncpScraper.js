@@ -13,34 +13,8 @@ const getNcpTime = (item) => {
   let newItem = {
     appPrice: item.tariffTitle.includes("APP"),
     price: item.tariffCharge,
-    text: item.tariffTitle,
-    days: "mon-sun",
-    time: "",
-    nightRate: item.tariffTitle.includes("NIGHT"),
-    earlyRate: item.tariffTitle.includes("EARLY"),
+    text: item.tariffTitle.toLowerCase(),
   };
-
-  if (item.tariffTitle.includes("WEEKEND")) {
-    newItem.days = "sat-sun";
-  }
-
-  if (
-    (match = item.tariffTitle
-      .toLowerCase()
-      .match(/(\d{4}\s?-\s?\d{4}|by\s?\d{4})/g))
-  ) {
-    const time = match[0].trim();
-    const splitTime = time.split("-");
-
-    return {
-      ...newItem,
-      hours:
-        splitTime.length > 1
-          ? calculateHoursBetween(splitTime[0], splitTime[1])
-          : null,
-      time,
-    };
-  }
 
   // x hour
   if (
@@ -60,7 +34,7 @@ const getNcpTime = (item) => {
     return { ...newItem, hours: parseInt(match[2], 10) };
   }
 
-  return newItem;
+  return null;
 };
 
 const getDaysBetween = (startKey, endKey, enumObj) => {
@@ -139,7 +113,7 @@ const getNcpParkingInfo = async (url) => {
       disabledSpaces: parseInt(logs.carparks[0].numberOfDisabledBays),
       openingHours: getNcpOpeningHours(logs.carparks[0].openHours),
       updatedAt: new Date().toISOString(),
-      updatedBy: null,
+      updatedBy: "",
     },
   };
 

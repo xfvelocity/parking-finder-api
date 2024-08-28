@@ -53,13 +53,8 @@ const mapSchema = new Schema({
   prices: [
     {
       appPrice: Boolean,
-      earlyRate: Boolean,
-      nightRate: Boolean,
       price: Number,
       hours: Number,
-      days: String,
-      time: String,
-      text: String,
     },
   ],
   info: {
