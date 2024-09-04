@@ -31,11 +31,10 @@ const publicUrls = [
   "/api/email-verify",
   "/api/login",
   "/api/map",
-  "/api/add-prices",
 ];
 
 app.use(async (req, res, next) => {
-  if (publicUrls.some((url) => req.originalUrl.includes(url))) {
+  if (publicUrls.some((url) => req.originalUrl === url)) {
     return next();
   } else {
     return authenticateToken(req, res, next);

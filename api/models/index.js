@@ -76,6 +76,7 @@ const mapSchema = new Schema({
 
 const MapModel = mongoose.model("Map", mapSchema);
 
+// ** Location **
 const locationSchema = new Schema({
   uuid: String,
   location: {
@@ -94,9 +95,67 @@ const locationSchema = new Schema({
 
 const LocationModel = mongoose.model("Location", locationSchema);
 
+// ** Info **
+const infoSchema = new Schema({
+  uuid: String,
+  locationUuid: String,
+  addedBy: String,
+  addedOn: Date,
+  times: {
+    monday: {
+      openingTime: String,
+      closingTime: String,
+      isOpen: Boolean,
+    },
+    tuesday: {
+      openingTime: String,
+      closingTime: String,
+      isOpen: Boolean,
+    },
+    wednesday: {
+      openingTime: String,
+      closingTime: String,
+      isOpen: Boolean,
+    },
+    thursday: {
+      openingTime: String,
+      closingTime: String,
+      isOpen: Boolean,
+    },
+    friday: {
+      openingTime: String,
+      closingTime: String,
+      isOpen: Boolean,
+    },
+    saturday: {
+      openingTime: String,
+      closingTime: String,
+      isOpen: Boolean,
+    },
+    sunday: {
+      openingTime: String,
+      closingTime: String,
+      isOpen: Boolean,
+    },
+  },
+  prices: [
+    {
+      hours: Number,
+      price: Number,
+    },
+  ],
+  info: {
+    disabledSpaces: Number,
+    spaces: Number,
+  },
+});
+
+const InfoModel = mongoose.model("Info", infoSchema);
+
 module.exports = {
   EmailValidation: EmailValidationModel,
   User: UserModel,
   Map: MapModel,
   Location: LocationModel,
+  Info: InfoModel,
 };

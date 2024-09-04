@@ -1,5 +1,5 @@
 const { default: axios } = require("axios");
-const { Map, Location } = require("../models/index");
+const { Map, Location, Info } = require("../models/index");
 const { getNCPCarParks, scrapeGooglePlaces } = require("../ncpScraper.js");
 const { checkDistance, roundDecimal } = require("../helpers/generic.js");
 const { v4: uuidv4 } = require("uuid");
@@ -161,7 +161,25 @@ const scrapeNcp = async (req, res) => {
   }
 };
 
+const addParkingInfo = async (req, res) => {
+  try {
+    const info = await Info.create({
+      ...req.body,
+      locationUuid: req.params.uuid,
+      uuid: uuidv4(),
+      addedOn: new Date(),
+      addedBy: req.user.uuid,
+    });
+
+    return res.status(200).send(info);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send({ message: e });
+  }
+};
+
 module.exports = {
   map,
   scrapeNcp,
+  addParkingInfo,
 };
