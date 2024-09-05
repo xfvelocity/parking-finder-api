@@ -4,8 +4,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv/config");
 
-const { authenticateToken } = require("./helpers/generic");
-
 const rateLimit = require("express-rate-limit");
 
 const limiter = rateLimit({
@@ -22,24 +20,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: ["http://localhost:5173", "https://parkingfinder.uk"],
   })
 );
-
-const publicUrls = [
-  "/api/register",
-  "/api/email-verify",
-  "/api/login",
-  "/api/map",
-];
-
-app.use(async (req, res, next) => {
-  if (publicUrls.some((url) => req.path === url)) {
-    return next();
-  } else {
-    return authenticateToken(req, res, next);
-  }
-});
 
 app.get("/api", (req, res) => {
   res.setHeader("Content-Type", "text/html");

@@ -141,9 +141,53 @@ const map = async (req, res) => {
       );
     }
 
-    return res.status(200).send(items);
+    const response = items.map((item) => {
+      const obj = {
+        type: item.type,
+        name: item.name,
+        rating: item.rating,
+        address: item.address,
+        locationUuid: item.locationUuid,
+      };
+
+      if (filters.prices) {
+        const sortedArray = item.prices.sort((a, b) => a.hours - b.hours);
+        const matchingPrice = sortedArray.filter(
+          (x) => x.hours >= parseInt(req.query.hours)
+        )[0];
+
+        obj.matchingPrice = matchingPrice.price;
+      }
+
+      return obj;
+    });
+
+    return res.status(200).send(response);
   } catch (e) {
     console.log(e);
+    return res.status(500).send({ message: e });
+  }
+};
+
+const getMapItem = async (req, res) => {
+  try {
+    const item = await Map.findOne({ locationUuid: req.params.uuid });
+    let response = item._doc;
+
+    if (req.user?.uuid) {
+      const infos = await Info.find({ addedBy: req.user.uuid });
+
+      response = {
+        ...response,
+        pendingInfoByUser: infos.some(
+          (info) => info.locationUuid === response.locationUuid
+        ),
+      };
+    }
+
+    return res.status(200).send(response);
+  } catch (e) {
+    console.error(e);
     return res.status(500).send({ message: e });
   }
 };
@@ -182,4 +226,5 @@ module.exports = {
   map,
   scrapeNcp,
   addParkingInfo,
+  getMapItem,
 };

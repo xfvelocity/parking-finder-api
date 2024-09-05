@@ -43,6 +43,18 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
+const getUserFromToken = (req, res, next) => {
+  const token = req.header("Authorization");
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: error });
+  }
+};
+
 const sendEmailVerification = async (user) => {
   const client = new MailtrapClient({
     endpoint: process.env.MAILTRAP_ENDPOINT,
@@ -152,6 +164,7 @@ module.exports = {
   sendEmailVerification,
   comparePassword,
   authenticateToken,
+  getUserFromToken,
   roundDecimal,
   calculateHoursBetween,
 };
