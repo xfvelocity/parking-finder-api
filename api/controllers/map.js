@@ -148,6 +148,7 @@ const map = async (req, res) => {
         rating: item.rating,
         address: item.address,
         locationUuid: item.locationUuid,
+        location: item.location,
       };
 
       if (filters.prices) {
