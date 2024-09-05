@@ -3,7 +3,7 @@ const {
   comparePassword,
   sendEmailVerification,
 } = require("../helpers/generic");
-const { User, EmailValidation } = require("../models/index");
+const { User, EmailValidation, Info } = require("../models/index");
 
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
@@ -85,6 +85,10 @@ const loginUser = async (req, res) => {
           email: user.email,
           accessToken,
         };
+
+        const info = await Info.find({ addedBy: user.uuid });
+
+        userObject.infoLocationUuids = info.map((i) => i.locationUuid);
       } else {
         await sendEmailVerification(user);
       }
@@ -94,6 +98,8 @@ const loginUser = async (req, res) => {
       return res.status(500).send({ message: "Incorrect email or password" });
     }
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({ message: "Server Error", error });
   }
 };
