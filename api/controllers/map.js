@@ -173,8 +173,8 @@ const map = async (req, res) => {
 
 const getMapItem = async (req, res) => {
   try {
-    const item = await Map.findOne({ parkingUuid: req.params.uuid });
-    let response = item._doc;
+    const item = await Map.findOne({ uuid: req.params.uuid });
+    let response = item?._doc || {};
 
     if (req.user?.uuid) {
       const infos = await Info.find({ addedBy: req.user.uuid });
