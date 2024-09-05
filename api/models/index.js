@@ -33,6 +33,7 @@ const EmailValidationModel = mongoose.model(
 
 // ** Map **
 const mapSchema = new Schema({
+  uuid: String,
   type: String,
   name: String,
   address: String,
@@ -60,18 +61,18 @@ const mapSchema = new Schema({
   info: {
     spaces: Number,
     disabledSpaces: Number,
-    openingHours: {
-      monday: [String],
-      tuesday: [String],
-      wednesday: [String],
-      thursday: [String],
-      friday: [String],
-      saturday: [String],
-      sunday: [String],
-    },
-    updatedAt: String,
-    updatedByUuid: String,
   },
+  openingHours: {
+    monday: [String],
+    tuesday: [String],
+    wednesday: [String],
+    thursday: [String],
+    friday: [String],
+    saturday: [String],
+    sunday: [String],
+  },
+  updatedAt: String,
+  updatedByUuid: String,
 });
 
 const MapModel = mongoose.model("Map", mapSchema);
@@ -98,7 +99,7 @@ const LocationModel = mongoose.model("Location", locationSchema);
 // ** Info **
 const infoSchema = new Schema({
   uuid: String,
-  locationUuid: String,
+  parkingUuid: String,
   addedBy: String,
   addedOn: Date,
   times: {

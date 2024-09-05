@@ -67,6 +67,7 @@ const handleNewGoogleLocations = (data, items) => {
         };
       } else if (!itemAlreadySaved) {
         return {
+          uuid: uuidv4(),
           type: "google",
           name: r.displayName.text,
           address: r.formattedAddress,
@@ -147,12 +148,12 @@ const map = async (req, res) => {
         name: item.name,
         rating: item.rating,
         address: item.address,
-        locationUuid: item.locationUuid,
+        uuid: item.uuid,
         location: item.location,
       };
 
       if (filters.prices) {
-        const sortedArray = item.prices.sort((a, b) => a.hours - b.hours);
+        const sortedArray = item.prices?.sort((a, b) => a.hours - b.hours);
         const matchingPrice = sortedArray.filter(
           (x) => x.hours >= parseInt(req.query.hours)
         )[0];
@@ -172,7 +173,7 @@ const map = async (req, res) => {
 
 const getMapItem = async (req, res) => {
   try {
-    const item = await Map.findOne({ locationUuid: req.params.uuid });
+    const item = await Map.findOne({ parkingUuid: req.params.uuid });
     let response = item._doc;
 
     if (req.user?.uuid) {
@@ -181,7 +182,7 @@ const getMapItem = async (req, res) => {
       response = {
         ...response,
         pendingInfoByUser: infos.some(
-          (info) => info.locationUuid === response.locationUuid
+          (info) => info.parkingUuid === response.uuid
         ),
       };
     }
@@ -210,7 +211,7 @@ const addParkingInfo = async (req, res) => {
   try {
     const info = await Info.create({
       ...req.body,
-      locationUuid: req.params.uuid,
+      parkingUuid: req.params.uuid,
       uuid: uuidv4(),
       addedOn: new Date(),
       addedBy: req.user.uuid,

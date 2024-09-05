@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 
 const { Map } = require("./models/index");
+const { v4: uuidv4 } = require("uuid");
 const { calculateHoursBetween } = require("./helpers/generic");
 const { default: axios } = require("axios");
 
@@ -102,6 +103,7 @@ const getNcpParkingInfo = async (url) => {
   await new Promise((resolve) => setTimeout(resolve, 200));
 
   const formattedInfo = {
+    uuid: uuidv4(),
     type: "ncp",
     location: {
       type: "Point",
@@ -111,10 +113,10 @@ const getNcpParkingInfo = async (url) => {
     info: {
       spaces: logs.carparks[0].numberOfSpaces,
       disabledSpaces: parseInt(logs.carparks[0].numberOfDisabledBays),
-      openingHours: getNcpOpeningHours(logs.carparks[0].openHours),
-      updatedAt: new Date().toISOString(),
-      updatedBy: "",
     },
+    openingHours: getNcpOpeningHours(logs.carparks[0].openHours),
+    updatedAt: new Date().toISOString(),
+    updatedByUuid: "",
   };
 
   return formattedInfo;
