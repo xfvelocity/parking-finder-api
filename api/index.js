@@ -34,7 +34,7 @@ const publicUrls = [
 ];
 
 app.use(async (req, res, next) => {
-  if (publicUrls.some((url) => req.originalUrl === url)) {
+  if (publicUrls.some((url) => req.path === url)) {
     return next();
   } else {
     return authenticateToken(req, res, next);
