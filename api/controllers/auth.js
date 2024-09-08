@@ -43,6 +43,7 @@ const registerUser = async (req, res) => {
       name,
       password: hashedPassword,
       emailVerified: false,
+      role: "user",
     });
 
     await sendEmailVerification(user);
@@ -84,6 +85,7 @@ const loginUser = async (req, res) => {
           name: user.name,
           email: user.email,
           accessToken,
+          role: user.role,
         };
       } else {
         await sendEmailVerification(user);
