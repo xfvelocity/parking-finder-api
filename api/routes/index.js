@@ -24,6 +24,7 @@ const {
   scrapeNcp,
   addParkingInfo,
   getMapItem,
+  getInfo,
 } = require("../controllers/map");
 
 router.get("/map", map);
@@ -33,5 +34,8 @@ router.get("/map/:uuid", getUserFromToken, getMapItem);
 router.post("/map/ncp-scrape", scrapeNcp);
 
 router.post("/map/:uuid/info", authenticateToken, addParkingInfo);
+
+// ** Info **
+router.get("/info", authenticateToken, getInfo);
 
 module.exports = router;

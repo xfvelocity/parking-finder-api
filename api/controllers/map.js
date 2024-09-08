@@ -1,7 +1,11 @@
 const { default: axios } = require("axios");
 const { Map, Location, Info } = require("../models/index");
 const { getNCPCarParks, scrapeGooglePlaces } = require("../ncpScraper.js");
-const { checkDistance, roundDecimal } = require("../helpers/generic.js");
+const {
+  checkDistance,
+  roundDecimal,
+  paginatedList,
+} = require("../helpers/generic.js");
 const { v4: uuidv4 } = require("uuid");
 
 // ** GET **
@@ -190,6 +194,19 @@ const getMapItem = async (req, res) => {
     return res.status(200).send(response);
   } catch (e) {
     console.error(e);
+
+    return res.status(500).send({ message: e });
+  }
+};
+
+const getInfo = async (req, res) => {
+  try {
+    const info = await paginatedList(req, Info, {}, {});
+
+    return res.status(200).send(info);
+  } catch (e) {
+    console.error(e);
+
     return res.status(500).send({ message: e });
   }
 };
@@ -227,6 +244,7 @@ const addParkingInfo = async (req, res) => {
 module.exports = {
   map,
   scrapeNcp,
+  getInfo,
   addParkingInfo,
   getMapItem,
 };
