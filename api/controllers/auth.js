@@ -14,25 +14,25 @@ const registerUser = async (req, res) => {
     const { email, password, name } = req.body;
 
     if (!name) {
-      return res.status(500).send({ message: "Name is required" });
+      return res.status(400).send({ message: "Name is required" });
     }
 
     const passwordRegex = new RegExp("^(?=.*[A-Za-z])(?=.*d)[A-Za-zd]{6,}$");
 
     if (passwordRegex.test(password)) {
       return res
-        .status(500)
+        .status(400)
         .send({ message: "Password must include 6 characters and 1 number" });
     }
 
     if (password)
       if (!email) {
-        return res.status(500).send({ message: "Email is required" });
+        return res.status(400).send({ message: "Email is required" });
       } else {
         const emailExists = await User.findOne({ email });
 
         if (emailExists) {
-          return res.status(500).send({ message: "Email is already taken" });
+          return res.status(400).send({ message: "Email is already taken" });
         }
       }
 
@@ -66,7 +66,7 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(500).send({ message: "Incorrect email or password" });
+      return res.status(400).send({ message: "Incorrect email or password" });
     }
 
     const passwordMatch = await comparePassword(password, user.password);
@@ -92,13 +92,15 @@ const loginUser = async (req, res) => {
       }
 
       res.status(200).send(userObject);
+
+      return userObject;
     } else {
-      return res.status(500).send({ message: "Incorrect email or password" });
+      return res.status(400).send({ message: "Incorrect email or password" });
     }
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({ message: "Server Error", error });
+    return res.status(500).json({ message: "Server Error", error });
   }
 };
 
@@ -110,7 +112,7 @@ const verifyCode = async (req, res) => {
     const emailVerification = await EmailValidation.findOne({ uuid });
 
     if (!emailVerification) {
-      return res.status(500).send({ message: "Code has expired" });
+      return res.status(400).send({ message: "Code has expired" });
     }
 
     if (emailVerification.code === parseInt(code)) {
@@ -129,7 +131,7 @@ const verifyCode = async (req, res) => {
         accessToken,
       });
     } else {
-      return res.status(500).send({ message: "Invalid code" });
+      return res.status(400).send({ message: "Invalid code" });
     }
   } catch (error) {
     console.error(error);
@@ -137,8 +139,50 @@ const verifyCode = async (req, res) => {
   }
 };
 
+const loginAdmin = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).send({ message: "Incorrect email or password" });
+    }
+
+    const passwordMatch = await comparePassword(password, user.password);
+
+    if (passwordMatch) {
+      if (user.emailVerified) {
+        const accessToken = jwt.sign(user.toJSON(), process.env.JWT_SECRET);
+
+        if (user.role !== "admin") {
+          return res.status(403).send({ message: "User must be an admin" });
+        } else {
+          return res.status(200).send({
+            uuid: user.uuid,
+            emailVerified: user.emailVerified,
+            name: user.name,
+            email: user.email,
+            accessToken,
+            role: user.role,
+          });
+        }
+      } else {
+        return res.status(401).send({ message: "Email isn't verified" });
+      }
+    } else {
+      return res.status(400).send({ message: "Incorrect email or password" });
+    }
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({ message: "Server Error", error });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   verifyCode,
+  loginAdmin,
 };

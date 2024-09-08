@@ -3,13 +3,20 @@ const router = express.Router();
 const { authenticateToken, getUserFromToken } = require("../helpers/generic");
 
 // ** Auth **
-const { registerUser, loginUser, verifyCode } = require("../controllers/auth");
+const {
+  registerUser,
+  loginUser,
+  verifyCode,
+  loginAdmin,
+} = require("../controllers/auth");
 
 router.post("/register", registerUser);
 
 router.post("/email-verify", verifyCode);
 
 router.post("/login", loginUser);
+
+router.post("/admin/login", loginAdmin);
 
 // ** Maps **
 const {

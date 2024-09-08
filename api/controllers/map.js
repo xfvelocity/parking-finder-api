@@ -92,7 +92,7 @@ const map = async (req, res) => {
 
   if (!lat || !lng) {
     return res
-      .status(500)
+      .status(400)
       .send({ message: "Latitude & Longitude is required" });
   }
 
