@@ -1,5 +1,5 @@
 const { default: axios } = require("axios");
-const { Map, Location, Info } = require("../models/index");
+const { Map, Location, Info, User } = require("../models/index");
 const { getNCPCarParks, scrapeGooglePlaces } = require("../ncpScraper.js");
 const {
   checkDistance,
@@ -202,6 +202,29 @@ const getMapItem = async (req, res) => {
 const getInfo = async (req, res) => {
   try {
     const info = await paginatedList(req, Info, {}, {});
+
+    info.data = await Promise.all(
+      info.data.map(async (i) => {
+        const user = await User.findOne({ uuid: i.addedBy });
+        const parking = await Map.findOne({ uuid: i.parkingUuid });
+
+        delete i.addedBy;
+        delete i.parkingUuid;
+
+        return {
+          ...i,
+          user: {
+            name: user.name,
+            role: user.role,
+            uuid: user.uuid,
+          },
+          parking: {
+            uuid: parking?.uuid,
+            name: parking?.name,
+          },
+        };
+      })
+    );
 
     return res.status(200).send(info);
   } catch (e) {
