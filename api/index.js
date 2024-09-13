@@ -20,7 +20,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://parkingfinder.uk"],
+    origin: [
+      "http://localhost:5173",
+      "https://app.parkingfinder.uk",
+      "https://admin.parkingfinder.uk",
+      "https://test-app.parkingfinder.uk",
+      "https://test-admin.parkingfinder.uk",
+    ],
   })
 );
 
