@@ -52,26 +52,7 @@ const mapSchema = new Schema({
       required: true,
     },
   },
-  prices: [
-    {
-      appPrice: Boolean,
-      price: Number,
-      hours: Number,
-    },
-  ],
-  info: {
-    spaces: Number,
-    disabledSpaces: Number,
-  },
-  openingHours: {
-    monday: [String],
-    tuesday: [String],
-    wednesday: [String],
-    thursday: [String],
-    friday: [String],
-    saturday: [String],
-    sunday: [String],
-  },
+  infoUuid: String,
   updatedAt: String,
   updatedByUuid: String,
 });
@@ -103,7 +84,7 @@ const infoSchema = new Schema({
   parkingUuid: String,
   addedBy: String,
   addedOn: Date,
-  times: {
+  openingHours: {
     monday: {
       openingTime: String,
       closingTime: String,
@@ -150,6 +131,7 @@ const infoSchema = new Schema({
     disabledSpaces: Number,
     spaces: Number,
   },
+  status: String,
 });
 
 const InfoModel = mongoose.model("Info", infoSchema);

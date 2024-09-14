@@ -201,7 +201,7 @@ const getMapItem = async (req, res) => {
 
 const getInfo = async (req, res) => {
   try {
-    const info = await paginatedList(req, Info, {}, {});
+    const info = await paginatedList(req, Info, { status: "pending" }, {});
 
     info.data = await Promise.all(
       info.data.map(async (i) => {
@@ -247,6 +247,28 @@ const scrapeNcp = async (req, res) => {
   }
 };
 
+const updateInfo = async (req, res) => {
+  try {
+    if (!["approved", "denied"].includes(req.body.status)) {
+      return res
+        .status(400)
+        .send({ message: "Please use a status of approved or denied" });
+    }
+
+    await Info.findOneAndUpdate(
+      { uuid: req.params.uuid },
+      { status: req.body.status }
+    );
+    const info = await Info.findOne({ uuid: req.params.uuid });
+
+    return res.status(200).send(info);
+  } catch (e) {
+    console.error(e);
+
+    return res.status(500).send({ message: e });
+  }
+};
+
 const addParkingInfo = async (req, res) => {
   try {
     const info = await Info.create({
@@ -255,6 +277,7 @@ const addParkingInfo = async (req, res) => {
       uuid: uuidv4(),
       addedOn: new Date(),
       addedBy: req.user.uuid,
+      status: "pending",
     });
 
     return res.status(200).send(info);
@@ -268,6 +291,7 @@ module.exports = {
   map,
   scrapeNcp,
   getInfo,
+  updateInfo,
   addParkingInfo,
   getMapItem,
 };

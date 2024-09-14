@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
 
-const { Map } = require("./models/index");
+const { Map, Info } = require("./models/index");
 const { v4: uuidv4 } = require("uuid");
 const { calculateHoursBetween } = require("./helpers/generic");
 const { default: axios } = require("axios");
@@ -83,16 +83,36 @@ const getNcpOpeningHours = (openHours) => {
       if (splitDays[1]) {
         const daysBetween = getDaysBetween(splitDays[0], splitDays[1], dayEnum);
 
-        daysBetween.forEach((d) => (hours[d] = time.split("-")));
+        daysBetween.forEach((d) => {
+          const splitTime = time.split("-");
+
+          hours[d] = {
+            openingTime: splitTime[0],
+            closingTime: splitTime[1],
+          };
+        });
       } else {
-        hours[dayEnum[splitDays]] = time.split("-");
+        const splitTime = time.split("-");
+
+        hours[dayEnum[splitDays]] = {
+          openingTime: splitTime[0],
+          closingTime: splitTime[1],
+        };
       }
     });
   } else {
     if (openHours.includes("24 Hr")) {
-      Object.keys(hours).forEach((k) => (hours[k] = ["00:00", "24:00"]));
+      Object.keys(hours).forEach(
+        (k) =>
+          (hours[k] = {
+            openingTime: "00:00",
+            closingTime: "24:00",
+          })
+      );
     }
   }
+
+  console.log(hours);
 
   return hours;
 };
@@ -102,21 +122,32 @@ const getNcpParkingInfo = async (url) => {
 
   await new Promise((resolve) => setTimeout(resolve, 200));
 
-  const formattedInfo = {
+  const parkingUuid = uuidv4();
+
+  const info = {
     uuid: uuidv4(),
+    info: {
+      spaces: logs.carparks[0].numberOfSpaces,
+      disabledSpaces: parseInt(logs.carparks[0].numberOfDisabledBays),
+    },
+    prices: logs.carparks[0].tariffs.map((x) => getNcpTime(x)).filter((x) => x),
+    parkingUuid: parkingUuid,
+    openingHours: getNcpOpeningHours(logs.carparks[0].openHours),
+    updatedAt: new Date().toISOString(),
+    updatedByUuid: "",
+    status: "approved",
+  };
+
+  await Info.create(info);
+
+  const formattedInfo = {
+    uuid: parkingUuid,
     type: "ncp",
     location: {
       type: "Point",
       coordinates: [logs.location.coords.lng, logs.location.coords.lat],
     },
-    prices: logs.carparks[0].tariffs.map((x) => getNcpTime(x)).filter((x) => x),
-    info: {
-      spaces: logs.carparks[0].numberOfSpaces,
-      disabledSpaces: parseInt(logs.carparks[0].numberOfDisabledBays),
-    },
-    openingHours: getNcpOpeningHours(logs.carparks[0].openHours),
-    updatedAt: new Date().toISOString(),
-    updatedByUuid: "",
+    locationUuid: info.uuid,
   };
 
   return formattedInfo;

@@ -25,6 +25,7 @@ const {
   addParkingInfo,
   getMapItem,
   getInfo,
+  updateInfo,
 } = require("../controllers/map");
 
 router.get("/map", map);
@@ -37,5 +38,7 @@ router.post("/map/:uuid/info", authenticateToken, addParkingInfo);
 
 // ** Info **
 router.get("/info", authenticateToken, getInfo);
+
+router.post("/info/:uuid", authenticateToken, updateInfo);
 
 module.exports = router;
