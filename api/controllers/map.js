@@ -213,7 +213,7 @@ const getMapItem = async (req, res) => {
           spaces: null,
           disabledSpaces: null,
         },
-        openingTimes: {
+        openingHours: {
           monday: {},
           tuesday: {},
           wednesday: {},
