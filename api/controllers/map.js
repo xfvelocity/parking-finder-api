@@ -219,6 +219,8 @@ const getMapItem = async (req, res) => {
           wednesday: {},
           thursday: {},
           friday: {},
+          saturday: {},
+          sunday: {},
         },
       };
     }
