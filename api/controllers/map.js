@@ -205,6 +205,22 @@ const getMapItem = async (req, res) => {
 
     if (info) {
       response = { ...response, ...info._doc };
+    } else {
+      response = {
+        ...response,
+        prices: [],
+        info: {
+          spaces: null,
+          disabledSpaces: null,
+        },
+        openingTimes: {
+          monday: {},
+          tuesday: {},
+          wednesday: {},
+          thursday: {},
+          friday: {},
+        },
+      };
     }
 
     return res.status(200).send(response);
