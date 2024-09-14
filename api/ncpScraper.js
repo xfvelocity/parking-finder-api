@@ -147,7 +147,7 @@ const getNcpParkingInfo = async (url) => {
       type: "Point",
       coordinates: [logs.location.coords.lng, logs.location.coords.lat],
     },
-    locationUuid: info.uuid,
+    infoUuid: info.uuid,
   };
 
   return formattedInfo;
