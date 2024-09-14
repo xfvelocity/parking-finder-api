@@ -125,6 +125,7 @@ const infoSchema = new Schema({
     {
       hours: Number,
       price: Number,
+      appPrice: Boolean,
     },
   ],
   info: {
