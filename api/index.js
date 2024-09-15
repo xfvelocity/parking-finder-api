@@ -1,8 +1,11 @@
+require("dotenv/config");
+require("./instrument.js");
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv/config");
+const Sentry = require("@sentry/node");
 
 const rateLimit = require("express-rate-limit");
 
@@ -30,6 +33,8 @@ app.use(
   })
 );
 
+Sentry.setupExpressErrorHandler(app);
+
 app.get("/api", (req, res) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
@@ -37,6 +42,15 @@ app.get("/api", (req, res) => {
 });
 
 app.use("/api", require("./routes/index"));
+
+app.use((err, req, res, next) => {
+  res.statusCode = 500;
+  res.end(res.sentry + "\n");
+});
+
+app.get("/debug-sentry", (req, res) => {
+  throw new Error("My first Sentry error!");
+});
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

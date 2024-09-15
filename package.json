@@ -9,6 +9,9 @@
     "scrape:ncp": "node api/ncpScraper.js"
   },
   "dependencies": {
+    "@sentry/cli": "^2.36.1",
+    "@sentry/node": "^8.30.0",
+    "@sentry/profiling-node": "^8.30.0",
     "axios": "^1.7.3",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
