@@ -145,34 +145,32 @@ const map = async (req, res) => {
 
     if (req.query.hours) {
       items = await Promise.all(
-        items
-          .map(async (item) => {
-            console.log(item);
-            const info = await Info.findOne({
-              uuid: item.infoUuid,
-              prices: {
-                $elemMatch: {
-                  hours: { $gte: parseInt(req.query.hours) },
-                },
+        items.map(async (item) => {
+          console.log(item);
+          const info = await Info.findOne({
+            uuid: item.infoUuid,
+            prices: {
+              $elemMatch: {
+                hours: { $gte: parseInt(req.query.hours) },
               },
-            });
+            },
+          });
 
-            if (info) {
-              const sortedArray = info.prices?.sort(
-                (a, b) => a.hours - b.hours
-              );
-              const matchingPrice = sortedArray.filter(
-                (x) => x.hours >= parseInt(req.query.hours)
-              )[0];
+          if (info) {
+            const sortedArray = info.prices?.sort((a, b) => a.hours - b.hours);
+            const matchingPrice = sortedArray.filter(
+              (x) => x.hours >= parseInt(req.query.hours)
+            )[0];
 
-              return {
-                ...item,
-                matchingPrice: matchingPrice.price,
-              };
-            }
-          })
-          .filter((x) => x)
+            return {
+              ...item,
+              matchingPrice: matchingPrice.price,
+            };
+          }
+        })
       );
+
+      items = items.filter((x) => x);
     }
 
     return res.status(200).send(items);
