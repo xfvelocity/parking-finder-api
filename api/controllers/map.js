@@ -183,6 +183,11 @@ const map = async (req, res) => {
 const getMapItem = async (req, res) => {
   try {
     const item = await Map.findOne({ uuid: req.params.uuid });
+
+    if (!item) {
+      return res.status(400).send({ message: "No matching item" });
+    }
+
     const info = await Info.findOne({ uuid: item.infoUuid });
     let response = item?._doc || {};
 
@@ -196,7 +201,7 @@ const getMapItem = async (req, res) => {
       response = {
         ...response,
         pendingInfoByUser: infos.some(
-          (info) => info.parkingUuid === response.uuid
+          (info) => response.uuid === info.parkingUuid
         ),
       };
     }
